@@ -10,12 +10,14 @@ import torch.fft
 import gzip
 import argparse
 from network import BF_CNN
+from network import ResNet
 
 ################################################# Helper Functions #################################################
 def load_denoiser(architecture,grayscale, training_data, training_noise): 
     if architecture=='BF_CNN': 
         model = load_BF_CNN(grayscale, training_data, training_noise)
-
+    if architecture=='N2V': 
+        model = load_N2V(grayscale, training_data, training_noise)
         
     return model
 
@@ -42,6 +44,37 @@ def load_BF_CNN(grayscale, training_data, training_noise):
     if torch.cuda.is_available():
         model = model.cuda()
     model_path = os.path.join('denoisers/BF_CNN',training_data,training_noise,'model.pt')
+    if torch.cuda.is_available():
+        learned_params =torch.load(model_path)
+
+    else:
+        learned_params =torch.load(model_path, map_location='cpu' )
+    model.load_state_dict(learned_params)
+    return model
+
+def load_N2V(grayscale, training_data, training_noise): 
+    '''
+    @ grayscale: if True, number of input and output channels are set to 1. Otherwise 3
+    @ training_data: models provided in here have been trained on {BSD400, mnist, BSD300}
+    @ training_noise: standard deviation of noise during training the denoiser
+    '''
+    parser = argparse.ArgumentParser(description='N2V_color')
+    parser.add_argument('--dir_name', default= '../noise_range_')
+    parser.add_argument('--kernel_size', default= 3)
+    parser.add_argument('--padding', default= 1)
+    parser.add_argument('--num_kernels', default= 64)
+    parser.add_argument('--num_layers', default= 16)
+    if grayscale is True: 
+        parser.add_argument('--num_channels', default= 1)
+    else:
+        parser.add_argument('--num_channels', default= 3)
+    
+    args = parser.parse_args('')
+
+    model = ResNet(args)
+    if torch.cuda.is_available():
+        model = model.cuda()
+    model_path = os.path.join('denoisers/N2V',training_data,training_noise,'model_epoch0300.pth')
     if torch.cuda.is_available():
         learned_params =torch.load(model_path)
 

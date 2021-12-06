@@ -1,7 +1,8 @@
 import numpy as np
 import torch.nn as nn
 import torch
-
+from torch.nn import init
+from torch.optim import lr_scheduler
 ################################################# network class #################################################
 
 
@@ -171,14 +172,22 @@ class UNet(nn.Module):
 # Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network
 # https://arxiv.org/abs/1609.04802
 class ResNet(nn.Module):
-    def __init__(self, nch_in, nch_out, nch_ker=64, norm='bnorm', nblk=16):
+    '''
+    self.padding = args.padding
+        self.num_kernels = args.num_kernels
+        self.kernel_size = args.kernel_size
+        self.num_layers = args.num_layers
+        self.num_channels = args.num_channels
+    '''
+    #def __init__(self, nch_in, nch_out, nch_ker=64, norm='bnorm', nblk=16):
+    def __init__(self, args):
         super(ResNet, self).__init__()
 
-        self.nch_in = nch_in
-        self.nch_out = nch_out
-        self.nch_ker = nch_ker
-        self.norm = norm
-        self.nblk = nblk
+        self.nch_in = 3#args.num_channels#nch_in
+        self.nch_out = 3#nch_out
+        self.nch_ker = args.num_kernels
+        self.norm = 'bnorm'#norm
+        self.nblk = args.num_layers#16#nblk
 
         if norm == 'bnorm':
             self.bias = False
